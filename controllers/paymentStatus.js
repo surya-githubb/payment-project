@@ -10,19 +10,19 @@ paymentStatus = async (req, res) => {
 
   const PG_SERVICE_URLS = {}; 
 
-  if(gateway == 'phonepe') {
+  if(gateway === 'phonepe') {
   const { orderId } = req.params; //phonepe
   if (!orderId) return res.status(422).json({ error: "Missing parameter: orderId" });
   PG_SERVICE_URLS.phonepe = `http://localhost:3000/api/payment/status/${orderId}`
   }
   
-  else if(gateway == 'razorpay') {
+  else if(gateway === 'razorpay') {
   const { linkId } = req.query; //razorpay
   if (!linkId) return res.status(422).json({ error: "Missing parameter: linkId" });
   PG_SERVICE_URLS.razorpay = `http://localhost:3001/api/payment/status?linkId=${linkId}`
   }
   
-  else if(gateway == 'paytm') {
+  else if(gateway === 'paytm') {
   const { linkId } = req.query; //paytm
   if (!linkId) return res.status(422).json({ error: "Missing parameter: linkId" });
   PG_SERVICE_URLS.razorpay = `http://localhost:3002/api/payment/status?linkId=${linkId}`
