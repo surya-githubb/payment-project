@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { v4: uuidv4 } = require('uuid');
 const phonePeClient = require('../utils/phonepeClient');
-const { StandardCheckoutPayRequest, CreateSdkOrderRequest } = require('pg-sdk-node');
+const { Env, StandardCheckoutPayRequest, CreateSdkOrderRequest, RefundRequest } = require('pg-sdk-node');
 
 // Initiate payment via PhonePe checkout page
 router.post('/initiate', async (req, res) => {
@@ -97,6 +97,87 @@ router.get('/status/:orderId', async (req, res) => {
   }
 });
 
+
+// Refund controller
+router.post('/refund', async (req, res) => {
+  try {
+    const { originalMerchantOrderId, amount } = req.body;
+
+    if (!originalMerchantOrderId || !amount) {
+      return res.status(400).json({ error: 'Missing orderId or amount' });
+    }
+
+    const refundId = uuidv4();
+
+    const refundRequest = RefundRequest.builder()
+      .amount(amount * 100) //PhonePe expects amount in paise 
+      .merchantRefundId(refundId)
+      .originalMerchantOrderId(originalMerchantOrderId)
+      .build();
+
+    const refundResponse = await phonePeClient.getClient().refund(refundRequest);
+    console.log(refundResponse)
+
+    return res.status(200).json({
+      message: 'Refund initiated',
+      refundId,
+      state: refundResponse.state,
+      amount: refundResponse.amount,
+    });
+
+  } catch (err) {
+    console.error('PhonePe refund error:', err);
+    return res.status(500).json({ error: 'Refund failed', details: err.message });
+  }
+});
+
+
+router.get('/refund-status/:refundId', async (req, res) => {
+  try {
+    const { refundId } = req.params;
+
+    if (!refundId) {
+      return res.status(400).json({ error: 'Missing refundId in request params.' });
+    }
+
+    const response = await phonePeClient.getClient().getRefundStatus(refundId);
+    console.log(response)
+    const {
+      merchantId,
+      merchantRefundId,
+      originalMerchantOrderId,
+      amount,
+      state,
+      paymentDetails = [],
+    } = response;
+
+    return res.status(200).json({
+      success: true,
+      refund: {
+        merchantId,
+        refundId: merchantRefundId,
+        orderId: originalMerchantOrderId,
+        amount,
+        status: state,
+        attempts: paymentDetails.map(detail => ({
+          transactionId: detail.transactionId,
+          paymentMode: detail.paymentMode,
+          timestamp: detail.timestamp,
+          state: detail.state,
+          errorCode: detail.errorCode || null,
+          detailedErrorCode: detail.detailedErrorCode || null,
+          instruments: detail.splitInstruments || [],
+        })),
+      },
+    });
+  } catch (error) {
+    console.error('Refund status error:', error);
+    return res.status(500).json({
+      success: false,
+      error: error?.message || 'Internal server error',
+    });
+  }
+});
 
 
 module.exports = router;
