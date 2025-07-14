@@ -1,0 +1,17 @@
+{
+  "name": "paytm",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "scripts": {
+    "dev": "nodemon src/app.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "paytm-pg-node-sdk": "^1.0.6",
+    "paytmchecksum": "^1.5.1"
+  }
+}
