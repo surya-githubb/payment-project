@@ -4,7 +4,7 @@ const Razorpay = require('razorpay');
 const {razorpayClient} = require('../utils/razorpayClient');
 
 
-// GET /check-status?linkId=Plinkxxxxx
+// GET /status?linkId=Plinkxxxxx
 exports.checkStatus = async (req, res) => {
   const { linkId } = req.query;
 
