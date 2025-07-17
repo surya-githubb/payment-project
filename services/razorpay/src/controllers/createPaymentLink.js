@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require('express');
 const router = express.Router();
 const Razorpay = require('razorpay');
@@ -16,14 +17,14 @@ exports.createPaymentLink = async (req, res) => {
             description: 'Payment for order',
             customer: {
                 name: req.body.name || "Demo User",
-                contact: req.body.contact || "9999999999",
+                contact: req.body.contact || "9789811980",
                 email: req.body.email || "demo@example.com"
             },
             notify: {
                 sms: true,
                 email: true
             },
-            callback_url: "http://localhost:3000/payment-success", // replace with your actual route
+            callback_url: process.env.CALLBACKURL, // replace with your actual route
             callback_method: "get"
         };
 
